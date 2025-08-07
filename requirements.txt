@@ -7,4 +7,4 @@ ultralytics
 gunicorn
 python-dotenv
 waitress
-sklearn
+scikit-learn
