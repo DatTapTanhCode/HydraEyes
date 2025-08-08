@@ -1300,29 +1300,38 @@ function addActivityLog(message, type = 'activity') {
 }
 
 function addAlertLog(cameraId, currentValue, threshold, assignedMembers) {
-    const camera = cameras.find(c => c.id === cameraId);
-    if (!camera) return;
+  const camera = cameras.find((c) => c.id === cameraId);
+  if (!camera) return;
 
-    const entry = {
-        id: Date.now(),
-        cameraId: cameraId,
-        location: camera.location,
-        currentValue: currentValue,
-        threshold: threshold,
-        assignedMembers: assignedMembers || [],
-        timestamp: new Date(),
-        type: currentValue > threshold * 1.2 ? 'danger' : 'warning'
-    };
-    
-    alertLog.unshift(entry);
-    
-    // Keep only last 100 entries
-    if (alertLog.length > 100) {
-        alertLog = alertLog.slice(0, 100);
-    }
-    
-    renderAlertLog();
-    updateRecentAlertsTable();
+  const entry = {
+    id: Date.now(),
+    cameraId: cameraId,
+    location: camera.location,
+    currentValue: currentValue,
+    threshold: threshold,
+    assignedMembers: assignedMembers || [],
+    timestamp: new Date(),
+    type: currentValue > threshold * 1.2 ? "danger" : "warning",
+  };
+
+  alertLog.unshift(entry);
+
+  // Keep only last 100 entries
+  if (alertLog.length > 100) {
+    alertLog = alertLog.slice(0, 100);
+  }
+
+  // Send email notification with alert details
+  sendEmail({
+    cameraId: cameraId,
+    location: camera.location,
+    currentValue: currentValue,
+    threshold: threshold,
+    alertType: entry.type,
+  });
+
+  renderAlertLog();
+  updateRecentAlertsTable();
 }
 
 // Modal Functions
