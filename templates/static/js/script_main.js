@@ -2040,6 +2040,7 @@ function renderActivityLog() {
             </div>
         `;
     } else {
+        sendEmail();
         const logsHTML = activityLog.map(entry => {
             const iconClass = entry.type === 'warning' ? 'warning' : 
                              entry.type === 'success' ? 'success' : 'activity';
@@ -2094,6 +2095,20 @@ function renderAlertLog() {
         
         container.innerHTML = logsHTML;
     }
+}
+
+function sendEmail() {
+    Email.send({
+        Host: "smtp.gmail.com",
+        Username: "keroeugenebonito@gmail.com",
+        Password: "@ananan11T",
+        To: "hmhuy605@gmail.com", // Replace with the recipient's email address
+        From: "keroeugenebonito@gmail.com", // Replace with the sender's email address
+        Subject: "Tét email sent from HydraEyes",
+        Body: "Success",
+    }).then(function (message) {
+        alert("HydraEyes mail sent successfully");
+    });
 }
 
 function updateRecentAlertsTable() {
