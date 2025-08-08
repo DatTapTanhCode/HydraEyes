@@ -1,0 +1,94 @@
+<!-- Camera Management Content -->
+<div class="content hidden" id="cameras-content">
+    <div class="section-header">
+        <h2 class="section-title">Camera Management</h2>
+        <button class="add-camera-btn" onclick="showAddCameraModal()">
+            <span class="add-icon">+</span>
+            Add Camera
+        </button>
+    </div>
+
+    <div class="camera-feeds" id="cameraFeeds">
+        <!-- Cameras will be rendered here dynamically -->
+    </div>
+</div>
+
+<!-- Camera Modal -->
+<div class="modal-overlay" id="cameraModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 class="modal-title">Add New Camera</h3>
+            <button class="modal-close" onclick="hideAddCameraModal()">&times;</button>
+        </div>
+        <form id="cameraForm">
+            <div class="form-group">
+                <label class="form-label">Camera Address/URL</label>
+                <input type="text" id="cameraAddress" class="form-input" placeholder="Enter camera IP or URL" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Gauge Type</label>
+                <select id="gaugeType" class="form-select" required>
+                    <option value="">Select gauge type</option>
+                    <option value="pressure">Pressure Gauge</option>
+                    <option value="temperature">Temperature Gauge</option>
+                    <option value="flow">Flow Gauge</option>
+                    <option value="level">Level Gauge</option>
+                    <option value="digital">Digital Display</option>
+                    <option value="analog">Analog Gauge</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Location</label>
+                <input type="text" id="cameraLocation" class="form-input" placeholder="Enter camera location" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Threshold Value</label>
+                <input type="number" id="thresholdValue" class="form-input" placeholder="Enter threshold value" required>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-cancel" onclick="hideAddCameraModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary">Add Camera</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Camera Config Modal -->
+<div class="modal-overlay" id="configModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 class="modal-title">Configure Camera</h3>
+            <button class="modal-close" onclick="hideConfigModal()">&times;</button>
+        </div>
+        <form id="configForm">
+            <div class="form-group">
+                <label class="form-label">Camera Address/URL</label>
+                <input type="text" id="configCameraAddress" class="form-input" placeholder="Enter camera IP or URL" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Gauge Type</label>
+                <select id="configGaugeType" class="form-select" required>
+                    <option value="">Select gauge type</option>
+                    <option value="pressure">Pressure Gauge</option>
+                    <option value="temperature">Temperature Gauge</option>
+                    <option value="flow">Flow Gauge</option>
+                    <option value="level">Level Gauge</option>
+                    <option value="digital">Digital Display</option>
+                    <option value="analog">Analog Gauge</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Location</label>
+                <input type="text" id="configCameraLocation" class="form-input" placeholder="Enter camera location" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Threshold Value</label>
+                <input type="number" id="configThresholdValue" class="form-input" placeholder="Enter threshold value" required>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-cancel" onclick="hideConfigModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary">Update Camera</button>
+            </div>
+        </form>
+    </div>
+</div>

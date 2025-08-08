@@ -1,0 +1,110 @@
+<!-- Dashboard Content -->
+<div class="content" id="dashboard-content">
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-header">Cameras Online</div>
+            <div class="stat-value">
+                <span class="stat-icon icon-green"></span>
+                <span id="cameras-online">0</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-header">Total Cameras</div>
+            <div class="stat-value">
+                <span class="stat-icon icon-blue"></span>
+                <span id="total-cameras">0</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-header">Threshold Alerts</div>
+            <div class="stat-value">
+                <span class="stat-icon icon-red"></span>
+                <span id="threshold-alerts">0</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-header">System Uptime</div>
+            <div class="stat-value">
+                <span class="stat-icon icon-purple"></span>
+                <span id="system-uptime">99.7%</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Camera Status Section -->
+    <div class="camera-status-section">
+        <div class="camera-status-header">
+            <h3>System Status</h3>
+            <span style="font-size: 12px; color: #64748b;">Last updated: <span id="last-update">now</span></span>
+        </div>
+        <div class="status-location">
+            <span>System Status Overview</span>
+            <div class="status-indicator"></div>
+            <span>All Systems Operational</span>
+        </div>
+        <div class="status-cards">
+            <div class="status-card status-online">
+                <div class="status-value" id="online-count">0</div>
+                <div class="status-label">Online Cameras</div>
+                <div class="status-detail">Currently monitoring gauges</div>
+            </div>
+            <div class="status-card status-offline">
+                <div class="status-value" id="offline-count">0</div>
+                <div class="status-label">Offline Cameras</div>
+                <div class="status-detail">Require attention</div>
+            </div>
+            <div class="status-card status-alert">
+                <div class="status-value" id="alert-count">0</div>
+                <div class="status-label">Active Alerts</div>
+                <div class="status-detail">Threshold exceeded</div>
+            </div>
+            <div class="status-card status-normal">
+                <div class="status-value" id="normal-count">0</div>
+                <div class="status-label">Normal Status</div>
+                <div class="status-detail">Within parameters</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Real-time Chart -->
+    <div class="section-header">
+        <h2 class="section-title">Real-time Readings (Last 30 seconds)</h2>
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <select id="chartCameraSelect" style="padding: 5px 10px; border-radius: 6px; border: 1px solid #e2e8f0; font-size: 14px;">
+                <option value="all">All Cameras</option>
+            </select>
+            <span style="font-size: 12px; color: #64748b;">Auto-refresh: ON</span>
+        </div>
+    </div>
+
+    <div class="chart-section">
+        <div class="chart-container">
+            <canvas id="realtimeChart" width="800" height="300"></canvas>
+        </div>
+        <div class="chart-legend" id="chartLegend">
+            <!-- Legend will be populated dynamically -->
+        </div>
+    </div>
+
+    <!-- Latest Alerts -->
+    <div class="section-header">
+        <h2 class="section-title">Latest Alerts</h2>
+        <a href="#" class="see-all-btn" onclick="switchToPage('alerts')">See All</a>
+    </div>
+
+    <div class="alerts-table">
+        <div class="table-header">
+            <div>Camera</div>
+            <div>Alert Time</div>
+            <div>Duration</div>
+            <div>Threshold</div>
+            <div></div>
+        </div>
+        <div id="recent-alerts-list">
+            <div class="table-row" style="text-align: center; color: #64748b; grid-column: 1 / -1; padding: 2rem;">
+                No recent alerts
+            </div>
+        </div>
+    </div>
+</div>

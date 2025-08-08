@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hydra Eyes - Camera Monitoring Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style_main.css') }}">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo">
+                <div class="logo-icon">👁️</div>
+                <div class="logo-text">Hydra Eyes</div>
+            </div>
+            
+            <nav class="nav-menu">
+                <div class="nav-item active" data-page="dashboard">
+                    <span class="nav-icon">📊</span>
+                    Dashboard
+                </div>
+                <div class="nav-item" data-page="cameras">
+                    <span class="nav-icon">📹</span>
+                    Cameras
+                </div>
+                <div class="nav-item" data-page="teams">
+                    <span class="nav-icon">👥</span>
+                    Teams
+                </div>
+                <div class="nav-item" data-page="alerts">
+                    <span class="nav-icon">🚨</span>
+                    Alerts
+                </div>
+                <div class="nav-item" data-page="settings">
+                    <span class="nav-icon">⚙️</span>
+                    Settings
+                </div>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Header -->
+            <header class="header">
+                <h1 class="header-title">Hello {{ user.name if user else 'User' }}</h1>
+                <div class="header-actions">
+                    <button class="logout-btn" onclick="logout()">
+                        Logout
+                    </button>
+                    <div class="profile-avatar">👤</div>
+                </div>
+            </header>
+
+            <!-- Dashboard Content -->
+            <div class="content" id="dashboard-content">
+                <!-- Stats Grid -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-header">Cameras Online</div>
+                        <div class="stat-value">
+                            <span class="stat-icon icon-green"></span>
+                            <span id="cameras-online">{{ camera_data.cameras_online if camera_data else 0 }}</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">Total Cameras</div>
+                        <div class="stat-value">
+                            <span class="stat-icon icon-blue"></span>
+                            <span id="total-cameras">{{ camera_data.total_cameras if camera_data else 0 }}</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">Threshold Alerts</div>
+                        <div class="stat-value">
+                            <span class="stat-icon icon-red"></span>
+                            <span id="threshold-alerts">{{ camera_data.alerts_threshold if camera_data else 0 }}</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">System Uptime</div>
+                        <div class="stat-value">
+                            <span class="stat-icon icon-purple"></span>
+                            <span id="system-uptime">{{ camera_data.system_uptime if camera_data else 99.7 }}%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Camera Status Section -->
+                <div class="camera-status-section">
+                    <div class="camera-status-header">
+                        <h3>System Status</h3>
+                        <span style="font-size: 12px; color: #64748b;">Last updated: <span id="last-update">now</span></span>
+                    </div>
+                    <div class="status-location">
+                        <span>System Status Overview</span>
+                        <div class="status-indicator"></div>
+                        <span>All Systems Operational</span>
+                    </div>
+                    <div class="status-cards">
+                        <div class="status-card status-online">
+                            <div class="status-value" id="online-count">0</div>
+                            <div class="status-label">Online Cameras</div>
+                            <div class="status-detail">Currently monitoring gauges</div>
+                        </div>
+                        <div class="status-card status-offline">
+                            <div class="status-value" id="offline-count">0</div>
+                            <div class="status-label">Offline Cameras</div>
+                            <div class="status-detail">Require attention</div>
+                        </div>
+                        <div class="status-card status-alert">
+                            <div class="status-value" id="alert-count">0</div>
+                            <div class="status-label">Active Alerts</div>
+                            <div class="status-detail">Threshold exceeded</div>
+                        </div>
+                        <div class="status-card status-normal">
+                            <div class="status-value" id="normal-count">0</div>
+                            <div class="status-label">Normal Status</div>
+                            <div class="status-detail">Within parameters</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Individual Real-time Charts -->
+                <div class="section-header">
+                    <h2 class="section-title">Real-time Readings (Last 30 seconds)</h2>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <span style="font-size: 12px; color: #64748b;">Auto-refresh: ON</span>
+                    </div>
+                </div>
+
+                <div class="charts-grid" id="chartsGrid">
+                    <!-- Individual charts will be populated here dynamically -->
+                    <div class="no-charts-message">
+                        <div class="icon">📊</div>
+                        <div><strong>No cameras configured</strong></div>
+                        <div>Add cameras to see real-time charts</div>
+                    </div>
+                </div>
+                
+                <!-- AI Predictions Section -->
+                <div class="ai-predictions-section">
+                    <div class="section-header">
+                        <h2 class="section-title">🤖 AI Predictions & Analysis</h2>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <label class="switch">
+                                <input type="checkbox" id="ai-predictions-toggle" checked>
+                                <span class="slider"></span>
+                            </label>
+                            <span style="font-size: 14px; color: #64748b;">AI Predictions</span>
+                        </div>
+                    </div>
+
+                    <!-- Prediction Cards Grid -->
+                    <div class="predictions-grid" id="predictions-grid">
+                        <!-- Predictions will be populated by JavaScript -->
+                    </div>
+
+                    <!-- Analysis Summary -->
+                    <div class="analysis-summary" id="analysis-summary" style="display: none;">
+                        <div class="summary-header">
+                            <h3>📊 System Analysis Summary</h3>
+                            <button class="generate-summary-btn" onclick="generateAISummary()">
+                                Generate AI Summary
+                            </button>
+                        </div>
+                        <div class="summary-content" id="summary-content">
+                            <div class="summary-placeholder">
+                                Click "Generate AI Summary" to get an AI-powered analysis of your system performance.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Latest Alerts -->
+                <div class="section-header">
+                    <h2 class="section-title">Latest Alerts</h2>
+                    <a href="#" class="see-all-btn" onclick="switchToPage('alerts')">See All</a>
+                </div>
+
+                <div class="alerts-table">
+                    <div class="table-header">
+                        <div>Camera</div>
+                        <div>Alert Time</div>
+                        <div>Duration</div>
+                        <div>Threshold</div>
+                        <div></div>
+                    </div>
+                    <div id="recent-alerts-list">
+                        <div class="table-row" style="text-align: center; color: #64748b; grid-column: 1 / -1; padding: 2rem;">
+                            No recent alerts
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Camera Management Content -->
+            <div class="content hidden" id="cameras-content">
+                <div class="section-header">
+                    <h2 class="section-title">Camera Management</h2>
+                    <button class="add-camera-btn" onclick="showAddCameraModal()">
+                        <span class="add-icon">+</span>
+                        Add Camera
+                    </button>
+                </div>
+
+                <div class="camera-feeds" id="cameraFeeds">
+                    <!-- Cameras will be rendered here dynamically -->
+                </div>
+            </div>
+
+            <!-- Teams Content -->
+            <div class="content hidden" id="teams-content">
+                <div class="section-header">
+                    <h2 class="section-title">Team Management</h2>
+                    <button class="add-team-btn" onclick="showAddTeamModal()">
+                        <span class="add-icon">+</span>
+                        Add Team Member
+                    </button>
+                </div>
+
+                <div class="teams-grid" id="teamsGrid">
+                    <!-- Teams will be rendered here dynamically -->
+                </div>
+            </div>
+
+            <!-- Alerts Content -->
+            <div class="content hidden" id="alerts-content">
+                <div class="section-header">
+                    <h2 class="section-title">System Alerts & Activity</h2>
+                    <span style="font-size: 14px; color: #64748b;">Real-time monitoring and activity logs</span>
+                </div>
+
+                <div class="alerts-section">
+                    <!-- Activity Log -->
+                    <div class="log-box">
+                        <div class="log-header">
+                            <span>📋 Activity Log</span>
+                            <span style="font-size: 12px; color: #64748b;" id="activity-count">0 entries</span>
+                        </div>
+                        <div class="log-content" id="activity-log">
+                            <div class="empty-log">
+                                <div class="icon">📝</div>
+                                <div><strong>No activity yet</strong></div>
+                                <div>System activities will appear here</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Alert Log -->
+                    <div class="log-box">
+                        <div class="log-header">
+                            <span>🚨 Alert Log</span>
+                            <span style="font-size: 12px; color: #64748b;" id="alert-log-count">0 alerts</span>
+                        </div>
+                        <div class="log-content" id="alert-log">
+                            <div class="empty-log">
+                                <div class="icon">🔔</div>
+                                <div><strong>No alerts yet</strong></div>
+                                <div>Threshold alerts will appear here</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Content -->
+            <div class="content hidden" id="settings-content">
+                <div class="section-header">
+        <h2 class="section-title">⚙️ System Settings</h2>
+        <span style="font-size: 14px; color: #64748b;">Configure system preferences and notifications</span>
+    </div>
+
+    <!-- Email Notifications Section -->
+    <div class="settings-section">
+        <div class="settings-card">
+            <div class="settings-header">
+                <h3>📧 Email Notifications</h3>
+                <div class="email-status" id="emailStatus">
+                    <span class="status-indicator" id="emailStatusIndicator"></span>
+                    <span id="emailStatusText">Checking status...</span>
+                </div>
+            </div>
+
+            <!-- Email Configuration Form -->
+            <div class="settings-content">
+                <form id="emailConfigForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">SMTP Server</label>
+                            <input type="text" id="smtpServer" class="form-input" 
+                                placeholder="smtp.gmail.com" value="smtp.gmail.com">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Port</label>
+                            <input type="number" id="smtpPort" class="form-input" 
+                                placeholder="587" value="587">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Email Username</label>
+                        <input type="email" id="emailUsername" class="form-input" 
+                            placeholder="your-email@gmail.com">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Email Password / App Password</label>
+                        <input type="password" id="emailPassword" class="form-input" 
+                            placeholder="Enter your app password">
+                        <small class="form-help">
+                            For Gmail: Use App Password (not your regular password). 
+                            <a href="#" onclick="showGmailInstructions()">Setup instructions</a>
+                        </small>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">From Email</label>
+                        <input type="email" id="fromEmail" class="form-input" 
+                            placeholder="hydra-eyes@yourcompany.com">
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="testEmailConfig()">
+                            📧 Send Test Email
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            💾 Save Configuration
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Alert Settings -->
+        <div class="settings-card">
+            <div class="settings-header">
+                <h3>🚨 Alert Settings</h3>
+            </div>
+            <div class="settings-content">
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <h4>Alert Frequency</h4>
+                        <p>How often to resend alerts while threshold is exceeded</p>
+                    </div>
+                    <select class="form-select" id="alertFrequency">
+                        <option value="30">Every 30 seconds</option>
+                        <option value="60" selected>Every 1 minute</option>
+                        <option value="120">Every 2 minutes</option>
+                        <option value="300">Every 5 minutes</option>
+                    </select>
+                </div>
+
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <h4>Maximum Resends</h4>
+                        <p>Stop sending alerts after this many attempts</p>
+                    </div>
+                    <select class="form-select" id="maxResends">
+                        <option value="5">5 attempts</option>
+                        <option value="10" selected>10 attempts</option>
+                        <option value="20">20 attempts</option>
+                        <option value="-1">Unlimited</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Active Alerts Status -->
+        <div class="settings-card">
+            <div class="settings-header">
+                <h3>📊 Current Alert Status</h3>
+                <button class="btn btn-secondary" onclick="refreshAlertStatus()">🔄 Refresh</button>
+            </div>
+            <div class="settings-content">
+                <div id="activeAlertsContainer">
+                    <div class="loading-placeholder">Loading alert status...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Camera Modal -->
+    <div class="modal-overlay" id="cameraModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">Add New Camera</h3>
+                <button class="modal-close" onclick="hideAddCameraModal()">&times;</button>
+            </div>
+            <form id="cameraForm">
+                <div class="form-group">
+                    <label class="form-label">
+                        <input type="checkbox" id="demoMode" style="margin-right: 8px;">
+                        Demo Mode (Use simulated data instead of real camera)
+                    </label>
+                    <small style="color: #64748b; display: block; margin-top: 4px;">
+                        Check this to use random generated data for testing. Uncheck to use real camera with detector.
+                    </small>
+                </div>
+                
+                <div class="form-group" id="addressGroup">
+                    <label class="form-label">Camera Address/URL</label>
+                    <input type="text" id="cameraAddress" class="form-input" 
+                        placeholder="Enter camera IP or URL (e.g., 192.168.1.100 or http://camera-url)" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Detector Type</label>
+                    <select id="detectorType" class="form-select" required>
+                        <option value="">Select detector type</option>
+                        <option value="digital">Digital Gauge Detector (OCR-based)</option>
+                        <option value="analog">Analog Gauge Detector (Needle-based)</option>
+                    </select>
+                    <small style="color: #64748b; display: block; margin-top: 4px;">
+                        <strong>Digital:</strong> For digital displays and numeric gauges<br>
+                        <strong>Analog:</strong> For traditional needle-based analog gauges
+                    </small>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Gauge Type</label>
+                    <select id="gaugeType" class="form-select" required>
+                        <option value="">Select gauge type</option>
+                        <option value="pressure">Pressure Gauge</option>
+                        <option value="temperature">Temperature Gauge</option>
+                        <option value="flow">Flow Gauge</option>
+                        <option value="level">Level Gauge</option>
+                        <option value="digital">Digital Display</option>
+                        <option value="analog">Analog Gauge</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Location</label>
+                    <input type="text" id="cameraLocation" class="form-input" 
+                        placeholder="Enter camera location (e.g., Pump Room A)" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Threshold Value</label>
+                    <input type="number" id="thresholdValue" class="form-input" 
+                        placeholder="Enter threshold value" step="0.1" required>
+                    <small style="color: #64748b; display: block; margin-top: 4px;">
+                        Alert will trigger when reading exceeds this value
+                    </small>
+                </div>
+
+                <!-- Information box for analog cameras -->
+                <div id="calibrationInfo" style="display: none;">
+                    <div style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: 6px; padding: 8px; margin-top: 8px; font-size: 12px; color: #92400e;">
+                        ℹ️ Analog gauges require manual calibration after setup. You'll need to click on visible numbers on the gauge.
+                    </div>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-cancel" onclick="hideAddCameraModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Camera</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Camera Config Modal -->
+    <div class="modal-overlay" id="configModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">Configure Camera</h3>
+                <button class="modal-close" onclick="hideConfigModal()">&times;</button>
+            </div>
+            <form id="configForm">
+                <div class="form-group">
+                    <label class="form-label">
+                        <input type="checkbox" id="configDemoMode" style="margin-right: 8px;">
+                        Demo Mode
+                    </label>
+                </div>
+                
+                <div class="form-group" id="configAddressGroup">
+                    <label class="form-label">Camera Address/URL</label>
+                    <input type="text" id="configCameraAddress" class="form-input" 
+                        placeholder="Enter camera IP or URL" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Detector Type</label>
+                    <select id="configDetectorType" class="form-select" required>
+                        <option value="">Select detector type</option>
+                        <option value="digital">Digital Gauge Detector</option>
+                        <option value="analog">Analog Gauge Detector</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Gauge Type</label>
+                    <select id="configGaugeType" class="form-select" required>
+                        <option value="">Select gauge type</option>
+                        <option value="pressure">Pressure Gauge</option>
+                        <option value="temperature">Temperature Gauge</option>
+                        <option value="flow">Flow Gauge</option>
+                        <option value="level">Level Gauge</option>
+                        <option value="digital">Digital Display</option>
+                        <option value="analog">Analog Gauge</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Location</label>
+                    <input type="text" id="configCameraLocation" class="form-input" 
+                        placeholder="Enter camera location" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Threshold Value</label>
+                    <input type="number" id="configThresholdValue" class="form-input" 
+                        placeholder="Enter threshold value" step="0.1" required>
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-cancel" onclick="hideConfigModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update Camera</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Team Member Modal -->
+    <div class="modal-overlay" id="teamModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">Add Team Member</h3>
+                <button class="modal-close" onclick="hideAddTeamModal()">&times;</button>
+            </div>
+            <form id="teamForm">
+                <div class="form-group">
+                    <label class="form-label">Full Name</label>
+                    <input type="text" id="teamName" class="form-input" placeholder="Enter full name" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email Address</label>
+                    <input type="email" id="teamEmail" class="form-input" placeholder="Enter email address" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Contact Number</label>
+                    <input type="tel" id="teamContact" class="form-input" placeholder="Enter phone number" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Assigned Gauges</label>
+                    <div class="checkbox-group" id="gaugeCheckboxes">
+                        <!-- Will be populated dynamically -->
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-cancel" onclick="hideAddTeamModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Member</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Analog Calibration Modal -->
+    <div class="modal-overlay" id="analogCalibrationModal">
+        <div class="modal calibration-modal">
+            <div class="modal-header">
+                <h3 class="modal-title">Analog Gauge Calibration</h3>
+                <button class="modal-close" onclick="hideAnalogCalibrationModal()">&times;</button>
+            </div>
+            <div class="calibration-content">
+                <!-- Calibration Settings -->
+                <div class="calibration-settings">
+                    <h4>📐 Calibration Settings</h4>
+                    <div class="settings-grid">
+                        <div class="setting-item">
+                            <label for="calibrationPointsCount">Number of Points:</label>
+                            <input type="number" id="calibrationPointsCount" min="2" max="50" value="4" 
+                                onchange="updateCalibrationRequirements()">
+                        </div>
+                    </div>
+                    <div class="calibration-controls">
+                        <button type="button" class="btn-secondary" onclick="undoLastPoint()" id="undoBtn" disabled>
+                            ↶ Undo Last
+                        </button>
+                        <button type="button" class="btn-warning" onclick="resetAllPoints()" id="resetBtn" disabled>
+                            🗑️ Reset All
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="video-container">
+                    <img id="analogVideoFeed" 
+                        src="" 
+                        alt="Analog gauge feed" 
+                        onclick="handleAnalogClick(event)">
+                    <div id="videoStatus">
+                        Initializing video feed...
+                    </div>
+                </div>
+
+                <div class="calibration-status" id="calibrationStatus">
+                    <h4>Status: <span id="calibrationStatusText">Waiting for stable gauge...</span></h4>
+                    <div class="status-grid">
+                        <div>
+                            <strong>Points Collected:</strong> <span id="pointsCollected">0</span><span id="pointsRequiredDisplay"></span>
+                        </div>
+                        <div>
+                            <strong>Current Reading:</strong> <span id="currentAnalogReading">--</span>
+                        </div>
+                        <div>
+                            <strong>Progress:</strong> <span id="calibrationProgress">0%</span>
+                        </div>
+                        <div>
+                            <strong>Estimated Range:</strong> <span id="estimatedRange">--</span>
+                        </div>
+                    </div>
+                    <div class="calibration-progress">
+                        <div class="calibration-progress-bar" id="calibrationProgressBar"></div>
+                    </div>
+                </div>
+
+                <div class="calibration-log" id="calibrationLog">
+                    <h4>Calibration Points History</h4>
+                    <div id="calibrationPoints">
+                        <div class="log-placeholder">No calibration points yet - click on gauge numbers to start</div>
+                    </div>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-cancel" onclick="hideAnalogCalibrationModal()">
+                        ← Close Without Saving
+                    </button>
+                    <button type="button" class="btn btn-primary" id="completeCalibrationBtn" 
+                            onclick="completeAnalogCalibration()" disabled>
+                        ✅ Complete Calibration
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Value Input Modal -->
+    <div class="modal-overlay" id="valueInputModal">
+        <div class="modal value-input-modal">
+            <div class="modal-header">
+                <h3 class="modal-title">Enter Gauge Value</h3>
+                <button class="modal-close" onclick="hideValueInputModal()">&times;</button>
+            </div>
+            <div class="value-input-content">
+                <div class="value-input-info">
+                    <p id="clickPositionText">Enter the value shown at the clicked position:</p>
+                    <p>Point <span id="currentPointNumber">1</span> <span id="totalPointsNeededText"></span></p>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Gauge Value</label>
+                    <input type="number" id="gaugeValueInput" class="form-input" 
+                        placeholder="e.g., 25.5" step="0.01" required>
+                    <small>Enter the exact number visible at the position you clicked.</small>
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-cancel" onclick="cancelValueInput()">Cancel</button>
+                    <button type="button" class="btn-secondary" onclick="skipThisPoint()">Skip Point</button>
+                    <button type="button" class="btn btn-primary" onclick="submitGaugeValue()">Add Point</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/script_main.js') }}"></script>
+</body>
+</html>
