@@ -10,6 +10,9 @@ from analog_detector_web import WebAnalogGaugeProcessor
 import json
 import base64
 import logging
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -21,6 +24,13 @@ app = Flask(__name__,
             static_url_path='/static',
             template_folder='templates')
 app.secret_key = 'vision-ui-secret-key-change-in-production'
+
+# Email Configuration
+EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
+EMAIL_PORT = int(os.getenv('EMAIL_PORT', '587'))
+EMAIL_USERNAME = os.getenv('EMAIL_USERNAME', 'keroeugenebonito@gmail.com')
+EMAIL_PASSWORD = os.getenv('EMAIL_PASSWORD', 'vvms rfcy xeuw uhog')  # Use App Password for Gmail
+EMAIL_USE_TLS = True
 
 # Initialize detectors
 digital_detector = GaugeDetector('best.pt')
@@ -191,6 +201,39 @@ def validate_user(email, password):
         if account['email'] == email and account['password'] == password:
             return account
     return None
+
+def send_email_notification(to_email, subject, message):
+    """Send email notification using SMTP"""
+    try:
+        # Create message
+        msg = MIMEMultipart()
+        msg['From'] = EMAIL_USERNAME
+        msg['To'] = to_email
+        msg['Subject'] = subject
+        
+        # Add body to email
+        msg.attach(MIMEText(message, 'plain'))
+        
+        # Create SMTP session
+        server = smtplib.SMTP(EMAIL_HOST, EMAIL_PORT)
+        if EMAIL_USE_TLS:
+            server.starttls()  # Enable TLS encryption
+        
+        # Login with sender's email and password
+        if EMAIL_PASSWORD:
+            server.login(EMAIL_USERNAME, EMAIL_PASSWORD)
+        
+        # Send email
+        text = msg.as_string()
+        server.sendmail(EMAIL_USERNAME, to_email, text)
+        server.quit()
+        
+        logger.info(f"Email sent successfully to {to_email}")
+        return True
+        
+    except Exception as e:
+        logger.error(f"Failed to send email to {to_email}: {str(e)}")
+        return False
 
 @app.route('/')
 def index():
@@ -588,6 +631,33 @@ def toggle_detector():
     detector_enabled = data.get('enabled', True)
     
     return jsonify({'success': True, 'detector_enabled': detector_enabled})
+
+@app.route('/api/send-email', methods=['POST'])
+def send_email_api():
+    """API endpoint to send email notifications"""
+    if 'user' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    try:
+        data = request.get_json()
+        to_email = data.get('to_email')
+        subject = data.get('subject', 'HydraEyes Alert')
+        message = data.get('message', 'Alert from HydraEyes monitoring system')
+        
+        if not to_email:
+            return jsonify({'success': False, 'error': 'Email address is required'}), 400
+        
+        # Send email
+        success = send_email_notification(to_email, subject, message)
+        
+        if success:
+            return jsonify({'success': True, 'message': 'Email sent successfully'})
+        else:
+            return jsonify({'success': False, 'error': 'Failed to send email'}), 500
+            
+    except Exception as e:
+        logger.error(f"Email API error: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 def cleanup_cameras():
     """Cleanup function to stop all cameras on app shutdown"""
