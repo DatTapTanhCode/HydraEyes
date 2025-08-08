@@ -1,3 +1,4 @@
+#"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"
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify, flash, Response
 import os
 from datetime import datetime
@@ -13,6 +14,8 @@ import logging
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+
+import openai
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -31,6 +34,8 @@ EMAIL_PORT = int(os.getenv('EMAIL_PORT', '587'))
 EMAIL_USERNAME = os.getenv('EMAIL_USERNAME', 'keroeugenebonito@gmail.com')
 EMAIL_PASSWORD = os.getenv('EMAIL_PASSWORD', 'vvms rfcy xeuw uhog')  # Use App Password for Gmail
 EMAIL_USE_TLS = True
+
+OPENAI_API_KEY = ""  # Replace with your actual API key
 
 # Initialize detectors
 digital_detector = GaugeDetector('best.pt')
@@ -632,6 +637,140 @@ def toggle_detector():
     
     return jsonify({'success': True, 'detector_enabled': detector_enabled})
 
+
+@app.route('/api/generate-ai-summary', methods=['POST'])
+def generate_ai_summary():
+    """API endpoint to generate AI summary using OpenAI"""
+    if 'user' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    try:
+        data = request.get_json()
+        prompt = data.get('prompt')
+        selected_cameras = data.get('selectedCameras', [])
+        stats = data.get('stats', [])
+        
+        if not prompt:
+            return jsonify({'error': 'Prompt is required'}), 400
+        
+        if not selected_cameras:
+            return jsonify({'error': 'No cameras selected'}), 400
+        
+        logger.info(f"Generating AI summary for cameras: {selected_cameras}")
+        
+        # Initialize OpenAI client
+        client = openai.OpenAI(api_key=OPENAI_API_KEY)
+        
+        # Create the chat completion
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {
+                    "role": "system", 
+                    "content": "You are an AI assistant specialized in analyzing industrial monitoring data. Provide clear, actionable insights for system operators."
+                },
+                {
+                    "role": "user", 
+                    "content": prompt
+                }
+            ],
+            max_tokens=300,
+            temperature=0.7
+        )
+        
+        summary = response.choices[0].message.content
+        
+        # Log the AI summary generation
+        logger.info(f"AI summary generated successfully for {len(selected_cameras)} cameras")
+        
+        return jsonify({
+            'success': True,
+            'summary': summary,
+            'cameras_analyzed': selected_cameras,
+            'stats_summary': {
+                'total_cameras': len(stats),
+                'total_warnings': sum(stat.get('warningCount', 0) for stat in stats),
+                'total_dangers': sum(stat.get('dangerCount', 0) for stat in stats),
+                'generated_at': datetime.now().isoformat()
+            }
+        })
+        
+    except openai.APIError as e:
+        logger.error(f"OpenAI API error: {e}")
+        return jsonify({'error': f'OpenAI API error: {str(e)}'}), 500
+        
+    except openai.APIConnectionError as e:
+        logger.error(f"OpenAI connection error: {e}")
+        return jsonify({'error': 'Failed to connect to OpenAI service'}), 500
+        
+    except openai.RateLimitError as e:
+        logger.error(f"OpenAI rate limit error: {e}")
+        return jsonify({'error': 'OpenAI rate limit exceeded. Please try again later.'}), 429
+        
+    except openai.APITimeoutError as e:
+        logger.error(f"OpenAI timeout error: {e}")
+        return jsonify({'error': 'OpenAI request timed out. Please try again.'}), 408
+        
+    except Exception as e:
+        logger.error(f"Error generating AI summary: {e}")
+        return jsonify({'error': f'Failed to generate AI summary: {str(e)}'}), 500
+
+@app.route('/api/ai-analysis-config', methods=['GET', 'POST'])
+def ai_analysis_config():
+    """API endpoint to get/set AI analysis configuration"""
+    if 'user' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    if request.method == 'GET':
+        # Return current AI analysis configuration
+        config = {
+            'enabled': True,
+            'auto_analysis_interval': 300,  # 5 minutes
+            'include_technical_details': True,
+            'max_cameras_per_analysis': 10,
+            'analysis_history_limit': 50
+        }
+        return jsonify(config)
+    
+    elif request.method == 'POST':
+        # Update AI analysis configuration
+        try:
+            data = request.get_json()
+            
+            # Here you would typically save to database
+            # For now, just return success
+            logger.info(f"AI analysis config updated: {data}")
+            
+            return jsonify({
+                'success': True,
+                'message': 'AI analysis configuration updated successfully'
+            })
+            
+        except Exception as e:
+            logger.error(f"Error updating AI config: {e}")
+            return jsonify({'error': str(e)}), 500
+
+@app.route('/api/ai-analysis-history', methods=['GET'])
+def ai_analysis_history():
+    """API endpoint to get AI analysis history"""
+    if 'user' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    try:
+        # In a real implementation, you would fetch from database
+        # For now, return empty history
+        history = []
+        
+        return jsonify({
+            'success': True,
+            'history': history,
+            'total_analyses': len(history)
+        })
+        
+    except Exception as e:
+        logger.error(f"Error fetching AI analysis history: {e}")
+        return jsonify({'error': str(e)}), 500
+    
 @app.route('/api/send-email', methods=['POST'])
 def send_email_api():
     """API endpoint to send email notifications"""

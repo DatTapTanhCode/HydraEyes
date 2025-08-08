@@ -11,7 +11,8 @@
         <!-- Sidebar -->
         <div class="sidebar">
             <div class="logo">
-                <div class="logo-icon">👁️</div>
+                <!--<div class="logo-icon">👁️</div>-->
+                <img src="{{ url_for('static', filename='../logo.png') }}">
                 <div class="logo-text">Hydra Eyes</div>
             </div>
             
@@ -86,37 +87,80 @@
                     </div>
                 </div>
 
-                <!-- Camera Status Section -->
-                <div class="camera-status-section">
-                    <div class="camera-status-header">
-                        <h3>System Status</h3>
-                        <span style="font-size: 12px; color: #64748b;">Last updated: <span id="last-update">now</span></span>
+                <div class="ai-analysis-section">
+                    <div class="ai-analysis-header">
+                        <h3>🤖 AI Analysis & Insights</h3>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <label class="switch">
+                                <input type="checkbox" id="ai-analysis-toggle" checked onchange="toggleAIAnalysis(this.checked)">
+                                <span class="slider"></span>
+                            </label>
+                            <span style="font-size: 14px; color: #64748b;">Enable AI Analysis</span>
+                        </div>
                     </div>
-                    <div class="status-location">
-                        <span>System Status Overview</span>
-                        <div class="status-indicator"></div>
-                        <span>All Systems Operational</span>
-                    </div>
-                    <div class="status-cards">
-                        <div class="status-card status-online">
-                            <div class="status-value" id="online-count">0</div>
-                            <div class="status-label">Online Cameras</div>
-                            <div class="status-detail">Currently monitoring gauges</div>
+
+                    <div class="ai-analysis-container" id="ai-analysis-container">
+                        <!-- Camera Selection Section -->
+                        <div class="camera-selection-section">
+                            <div class="selection-header">
+                                <h4>📹 Select Cameras for Analysis</h4>
+                                <div class="selection-controls">
+                                    <button onclick="selectAllCamerasForAnalysis()" class="btn-secondary small">Select All</button>
+                                    <button onclick="deselectAllCamerasForAnalysis()" class="btn-secondary small">Clear All</button>
+                                    <span id="camera-selection-counter" class="selection-counter">0 of 0 cameras selected</span>
+                                </div>
+                            </div>
+                            
+                            <div class="camera-selection-grid" id="camera-selection-list">
+                                <!-- Camera selection items will be populated here -->
+                                <div style="text-align: center; color: #64748b; padding: 1rem;">
+                                    Loading cameras...
+                                </div>
+                            </div>
                         </div>
-                        <div class="status-card status-offline">
-                            <div class="status-value" id="offline-count">0</div>
-                            <div class="status-label">Offline Cameras</div>
-                            <div class="status-detail">Require attention</div>
+
+                        <!-- Analysis Generation Section -->
+                        <div class="analysis-generation-section">
+                            <div class="generation-header">
+                                <h4>🔍 Generate Analysis</h4>
+                                <div class="generation-info">
+                                    <small style="color: #64748b;">
+                                        Analysis will be based on data from the last 30 seconds using OpenAI GPT
+                                    </small>
+                                </div>
+                            </div>
+                            
+                            <div class="generation-controls">
+                                <button onclick="generateAISummary()" id="generate-ai-btn" class="btn btn-primary" disabled>
+                                    Select cameras to analyze
+                                </button>
+                                <div class="generation-options">
+                                    <label style="font-size: 12px; color: #64748b;">
+                                        <input type="checkbox" id="include-technical-details" checked style="margin-right: 6px;">
+                                        Include technical statistics
+                                    </label>
+                                </div>
+                            </div>
                         </div>
-                        <div class="status-card status-alert">
-                            <div class="status-value" id="alert-count">0</div>
-                            <div class="status-label">Active Alerts</div>
-                            <div class="status-detail">Threshold exceeded</div>
-                        </div>
-                        <div class="status-card status-normal">
-                            <div class="status-value" id="normal-count">0</div>
-                            <div class="status-label">Normal Status</div>
-                            <div class="status-detail">Within parameters</div>
+
+                        <!-- AI Summary Display Section -->
+                        <div class="ai-summary-section">
+                            <div class="summary-header">
+                                <h4>📊 AI Summary Results</h4>
+                                <div class="summary-actions-header">
+                                    <button onclick="renderCameraSelectionList(); updateAnalysisButtonState();" class="btn-secondary small">
+                                        🔄 Refresh
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="ai-summary-content" id="ai-summary-content">
+                                <div class="summary-placeholder">
+                                    <div class="placeholder-icon">🤖</div>
+                                    <div><strong>No analysis generated yet</strong></div>
+                                    <div>Select cameras above and click "Generate AI Summary" to get intelligent insights</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
