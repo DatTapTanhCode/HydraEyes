@@ -8,3 +8,4 @@ gunicorn
 python-dotenv
 waitress
 scikit-learn
+openai
