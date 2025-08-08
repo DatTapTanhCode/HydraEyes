@@ -1277,6 +1277,53 @@ function formatDateTime(date) {
     });
 }
 
+async function sendEmail(alertDetails = null) {
+  try {
+    // Prepare email content
+    const subject = "HydraEyes Alert - Threshold Exceeded";
+    let message =
+      "HydraEyes Alert: A threshold has been exceeded in your monitoring system.\n\n";
+
+    if (alertDetails) {
+      message += `Camera: ${alertDetails.cameraId}\n`;
+      message += `Location: ${alertDetails.location}\n`;
+      message += `Current Value: ${alertDetails.currentValue}\n`;
+      message += `Threshold: ${alertDetails.threshold}\n`;
+      message += `Time: ${new Date().toLocaleString()}\n\n`;
+    }
+
+    message += "Please check the HydraEyes dashboard for more details.";
+
+    // Call backend API
+    const response = await fetch("/api/send-email", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        to_email: "hmhuy605@gmail.com",
+        subject: subject,
+        message: message,
+      }),
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+      console.log("Email sent successfully via backend API");
+      // Optionally show a subtle success notification
+    } else {
+      console.error("Email sending failed:", result.error);
+      // Only show error alerts for debugging - remove in production
+      // alert("Email sending failed: " + result.error);
+    }
+  } catch (error) {
+    console.error("Email API call failed:", error);
+    // Only show error alerts for debugging - remove in production
+    // alert("Failed to send email notification. Check console for details.");
+  }
+}
+
 function addActivityLog(message, type = 'activity') {
     const entry = {
         id: Date.now(),
@@ -1774,7 +1821,6 @@ function renderAlertLog() {
             </div>
         `;
     } else {
-        
         const logsHTML = alertLog.map(entry => {
             const icon = entry.type === 'danger' ? '🚨' : '⚠️';
             const membersText = entry.assignedMembers.length > 0 ? 
